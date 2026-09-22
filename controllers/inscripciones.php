@@ -1,0 +1,4 @@
+<?php
+require_once __DIR__.'/../config/conexion.php';require_once __DIR__.'/../includes/seguridad.php';require_role(['administrador']);require_once __DIR__.'/../models/InscripcionModel.php';$m=new InscripcionModel($pdo);$id=(int)($_GET['id']??0);$accion=$_GET['accion']??'listar';
+if($_SERVER['REQUEST_METHOD']==='POST'){validar_csrf();try{if(($_POST['accion']??'')==='eliminar'){$m->eliminar((int)$_POST['id']);flash('success','Registro eliminado correctamente.');}elseif(($_POST['accion']??'')==='guardar'){if($id)$m->editar($id,$_POST);else$m->crear($_POST);flash('success',$id?'Registro actualizado correctamente.':'Registro creado correctamente.');}}catch(Throwable $e){flash('error','No se pudo completar la operación. Verifica datos y relaciones.');}redir('/controllers/inscripciones.php');}
+$registro=$id?$m->obtenerPorId($id):null;$registros=$m->obtenerTodas();$tituloPagina='Inscripciones';require __DIR__.'/../views/inscripciones/index.php';

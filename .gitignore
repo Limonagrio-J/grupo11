@@ -1,0 +1,9 @@
+/.git/
+.env
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.phpunit.result.cache
+vendor/

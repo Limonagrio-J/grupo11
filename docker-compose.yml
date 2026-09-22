@@ -1,0 +1,69 @@
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8003:80"
+    volumes:
+      - ./:/var/www/html
+      - student_portal_vendor_data:/var/www/html/vendor
+    environment:
+      DB_HOST: db
+      DB_NAME: student_portal_db
+      DB_USER: student_portal_user
+      DB_PASS: "12345"
+      TZ: America/La_Paz
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.0
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+    restart: unless-stopped
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: student_portal_db
+      MYSQL_USER: student_portal_user
+      MYSQL_PASSWORD: "12345"
+      TZ: America/La_Paz
+    volumes:
+      - student_portal_mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-uroot",
+          "-proot_password"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root_password
+      UPLOAD_LIMIT: 64M
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  student_portal_mysql_data:
+  student_portal_vendor_data:
